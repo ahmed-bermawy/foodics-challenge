@@ -2,34 +2,29 @@
 
 namespace App\Services;
 
+use App\Exceptions\ValidationException;
 use App\Models\Order;
+use App\Services\Notification\CustomerNotifierInterface;
+use App\Services\Order\OrderCalculatorInterface;
+use App\Services\Order\ProcessOrderService;
+use App\Services\Payment\PaymentGatewayInterface;
 
 class OrderService
 {
-    /**
-     * The payment gateway for processing payments.
-     *
-     * @var
-     */
-    private $checkoutPaymentGateway;
-
-    /**
-     * The inventory manager for updating inventory.
-     *
-     * @var
-     */
-    private $inventoryManager;
-
     /**
      * The OrderService constructor.
      *
      * @param $checkoutPaymentGateway
      * @param $inventoryManager
      */
-    public function __construct($checkoutPaymentGateway, $inventoryManager)
+    public function __construct(
+        private readonly PaymentGatewayInterface $checkoutPaymentGateway,
+        private readonly OrderCalculatorInterface $orderCalculator,
+        private readonly CustomerNotifierInterface $customerNotifier,
+        private readonly ProcessOrderService $processOrderService,
+        private readonly InvoiceService $invoiceService
+        )
     {
-        $this->checkoutPaymentGateway = $checkoutPaymentGateway;
-        $this->inventoryManager = $inventoryManager;
     }
 
     /**
@@ -39,69 +34,22 @@ class OrderService
      * @param Order $order
      *
      * @return void
+     * @throws ValidationException
      */
     public function placeOrder(Order $order): void
     {
-        $order = $this->validateOrder($order);
-        $order = $this->calculateOrderDetails($order);
+        $validateOrder = $this->validateOrder($order);
+        if (!$validateOrder) {
+            throw new ValidationException('Order validation failed.');
+        }
 
-        $this->processOrder($order);
-        $this->processPayment($order);
+        $order = $this->orderCalculator->calculate($order);
 
-        $this->notifyCustomer($order);
-        $this->sendInvoice($order);
-    }
-
-    /**
-     * Stores the order and updates the inventory.
-     *
-     * @param $order
-     *
-     * @return void
-     */
-    private function processOrder($order): void
-    {
-        $this->storeOrder($order);
-
-        $this->inventoryManager->updateInventory($order);
-    }
-
-    /**
-     * Uses the checkout payment gateway to process the payment.
-     *
-     * @param $order
-     *
-     * @return void
-     */
-    private function processPayment($order): void
-    {
+        $this->processOrderService->process($order);
         $this->checkoutPaymentGateway->processPayment($order->getTotalAmount());
-    }
 
-    /**
-     * Sends a notification to the customer about the order.Options can include
-     * Push or SMS notifications.
-     *
-     * @param $order
-     *
-     * @return void
-     */
-    private function notifyCustomer($order)
-    {
-        // Notify the customer about the order.
-    }
-
-    /**
-     * Sends an invoice to the customer. Options can include email with invoice attachment
-     * or SMS with an invoice link.
-     *
-     * @param $order
-     *
-     * @return void
-     */
-    private function sendInvoice($order)
-    {
-        // Send the invoice to the customer.
+        $this->customerNotifier->notify($order);
+        $this->invoiceService->send($order);
     }
 
     /**
@@ -118,30 +66,5 @@ class OrderService
 
         return true;
     }
-
-    /**
-     * Calculates the details of the order such as total amount, taxes, discounts, etc.
-     *
-     * @param $order
-     *
-     * @return void
-     */
-    private function calculateOrderDetails($order)
-    {
-        // Calculate the order details.
-    }
-
-    /**
-     * Stores the order in the database or any other storage mechanism.
-     *
-     * @param $order
-     *
-     * @return void
-     */
-    private function storeOrder($order)
-    {
-        // Store the order.
-    }
-
 
 }

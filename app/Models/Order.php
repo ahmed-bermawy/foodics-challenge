@@ -20,6 +20,11 @@ class Order extends Model
         'name',
     ];
 
+    public function getTotalAmount(): float
+    {
+        return $this->items->sum('price');
+    }
+
     /**
      * Get the branch that owns the order.
      *
