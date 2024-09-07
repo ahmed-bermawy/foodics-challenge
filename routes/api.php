@@ -10,3 +10,5 @@ Route::get('/user', function (Request $request) {
 Route::apiResource('/products', App\Http\Controllers\ProductController::class);
 Route::apiResource('/orders', App\Http\Controllers\OrderController::class);
 Route::apiResource('/order_items', App\Http\Controllers\OrderItemController::class);
+
+Route::get('/send-reports-revenue', [App\Http\Controllers\Report::class, 'handleReport']);

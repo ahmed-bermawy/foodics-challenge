@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\Report\ReportService;
 use App\Services\RevenueManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,6 +29,7 @@ class SendTotalRevenueReportJob implements ShouldQueue
      * @var int
      */
     public int $maxExceptions = 5;
+    private ReportService $reportService;
 
     /**
      * Create a new job instance.
@@ -42,54 +44,8 @@ class SendTotalRevenueReportJob implements ShouldQueue
      *
      * @throws RequestException
      */
-    public function handle(): void
+    public function handle(ReportService $reportService): void
     {
-        $verificationResponse = $this->postVerification();
-
-        $reportResponse = $this->postReport($verificationResponse);
-
-        $this->postReportConfirmation($reportResponse);
-    }
-
-    /**
-     * Perform HTTP POST to verification endpoint.
-     *
-     * @throws RequestException
-     */
-    private function postVerification(): array
-    {
-        return Http::post('https://revenue-verifier.com')->throw()->json();
-    }
-
-    /**
-     * Perform HTTP POST to report endpoint.
-     *
-     * @param array $verificationResponse
-     *
-     * @return array
-     * @throws RequestException
-     */
-    private function postReport(array $verificationResponse): array
-    {
-        return Http::post('https://revenue-reporting.com/reports', [
-            'verification_id' => $verificationResponse['id'],
-            'total_revenue' => RevenueManager::calculateTotalRevenue(),
-        ])->throw()->json();
-    }
-
-    /**
-     * Perform HTTP POST to report confirmation endpoint.
-     *
-     * @param array $reportResponse
-     *
-     * @return array
-     * @throws RequestException
-     */
-    private function postReportConfirmation(array $reportResponse): array
-    {
-        return Http::post('https://revenue-reporting.com/reports/confirm', [
-            'report_id' => $reportResponse['id'],
-            'timestamp' => now()->timestamp,
-        ])->throw()->json();
+        $reportService->handleReport();
     }
 }

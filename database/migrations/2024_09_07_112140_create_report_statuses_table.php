@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('job_id');
             $table->json('verification_response')->nullable();
             $table->json('report_response')->nullable();
+            $table->boolean('confirm')->default(false);
             $table->timestamps();
         });
     }

@@ -17,9 +17,10 @@ class ReportStatusFactory extends Factory
     public function definition(): array
     {
         return [
-            'job_id' => $this->faker->uuid(),
-            'verification_response' => $this->faker->sentence(),
-            'report_response' => $this->faker->sentence(),
+            'job_id' => $this->faker->uuid,
+            'verification_response' => null,
+            'report_response' => null,
+            'confirm' => false,
         ];
     }
 }
