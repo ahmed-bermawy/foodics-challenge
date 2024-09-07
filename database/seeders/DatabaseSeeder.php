@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ReportStatus;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Database\Factories\BranchFactory;
@@ -28,5 +29,6 @@ class DatabaseSeeder extends Seeder
         Order::factory(10)->create();
         OrderItem::factory(10)->create();
         Product::factory(10)->create();
+        ReportStatus::factory(10)->create();
     }
 }
