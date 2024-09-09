@@ -22,7 +22,12 @@ class UpdateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'sometimes|string|max:255',
+            'branch_id' => 'sometimes|exists:branches,id',
+            'items' => 'sometimes|array',
+            'items.*.product_id' => 'sometimes|exists:products,id',
+            'items.*.quantity' => 'sometimes|integer|min:1',
+            'items.*.price' => 'sometimes|numeric|min:0',
         ];
     }
 }

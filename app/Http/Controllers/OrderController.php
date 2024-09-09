@@ -4,16 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Repositories\OrderRepository;
+use Symfony\Component\HttpFoundation\Response;
 
 class OrderController extends Controller
 {
+
+    protected OrderRepository $orderRepository;
+
+    public function __construct(OrderRepository $orderRepository)
+    {
+        $this->orderRepository = $orderRepository;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $orders = $this->orderRepository->getList();
+        OrderResource::collection($orders);
+
+        return response()->json($orders, Response::HTTP_OK);
     }
 
     /**
@@ -21,7 +34,10 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request)
     {
-        //
+        $data = $request->validated();
+        $order = $this->orderRepository->create($data);
+
+        return response()->json(new OrderResource($order), Response::HTTP_CREATED);
     }
 
     /**
@@ -29,7 +45,7 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        //
+        return response()->json(new OrderResource($order), Response::HTTP_OK);
     }
 
     /**
@@ -37,7 +53,10 @@ class OrderController extends Controller
      */
     public function update(UpdateOrderRequest $request, Order $order)
     {
-        //
+        $data = $request->validated();
+        $order = $this->orderRepository->update($data, $order);
+
+        return response()->json(new OrderResource($order), Response::HTTP_OK);
     }
 
     /**
@@ -45,6 +64,8 @@ class OrderController extends Controller
      */
     public function destroy(Order $order)
     {
-        //
+        $this->orderRepository->delete($order);
+
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

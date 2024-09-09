@@ -18,11 +18,14 @@ class Order extends Model
      */
     protected $fillable = [
         'name',
+        'branch_id',
     ];
 
     public function getTotalAmount(): float
     {
-        return $this->items->sum('price');
+        return $this->items->sum(function ($item) {
+            return $item->quantity * $item->price;
+        });
     }
 
     /**
@@ -32,7 +35,7 @@ class Order extends Model
      */
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(Branch::class);
     }
 
     /**

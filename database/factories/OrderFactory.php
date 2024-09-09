@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Branch;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -26,6 +27,7 @@ class OrderFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'branch_id' => Branch::factory(),
         ];
     }
 }
